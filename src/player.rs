@@ -48,3 +48,11 @@ pub struct Rank {
   division: Option<Division>,
   lp: usize, // master+ lp
 }
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Player {
+  pub name: String,
+  pub rank: Rank,
+  pub main_role: Role,
+  pub sub_role: Vec<Role>,
+}
