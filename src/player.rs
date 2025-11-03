@@ -21,21 +21,22 @@ impl Role {
   }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Copy)]
-enum Tier {
+#[derive(Debug, Clone, PartialEq, Eq, Copy, Hash)]
+pub enum Tier {
   Iron,
   Bronze,
   Silver,
   Gold,
   Platinum,
+  Emerald,
   Diamond,
   Master,
   Grandmaster,
   Challenger,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Copy)]
-enum Division {
+#[derive(Debug, Clone, PartialEq, Eq, Copy, Hash)]
+pub enum Division {
   I,
   II,
   III,
@@ -44,9 +45,9 @@ enum Division {
 
 #[derive(Debug, Clone, PartialEq, Eq, Copy)]
 pub struct Rank {
-  tier: Tier,
-  division: Option<Division>,
-  lp: usize, // master+ lp
+  pub tier: Tier,
+  pub division: Option<Division>,
+  pub lp: usize, // master+ lp
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
