@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use crate::domain::{Tier, Division, Rank};
 
 #[derive(Debug, Clone, PartialEq)]
-struct MMRConfig {
+struct MMR {
   master_base_mmr: i32,
   ip_scale: f64,
 
@@ -11,7 +11,7 @@ struct MMRConfig {
 
 
 // バランスが悪い場合調整する。
-fn build_default_mmr_config() -> MMRConfig {
+fn build_default_mmr_config() -> MMR {
   let mut table = HashMap::new();
 
   let mut p = |tier: Tier, division: Option<Division>, mmr: i32| {
@@ -30,9 +30,9 @@ fn build_default_mmr_config() -> MMRConfig {
 
   let div_offsets = [
     (Division::IV, 0),
-    (Division::III, 20),
-    (Division::II, 40),
-    (Division::I, 60),
+    (Division::III, 25),
+    (Division::II, 50),
+    (Division::I, 75),
   ];
 
   for (tier, base) in tiers {
@@ -41,7 +41,7 @@ fn build_default_mmr_config() -> MMRConfig {
     }
   }
 
-  MMRConfig {
+  MMR {
     master_base_mmr: 900,
     ip_scale: 1.0, // master↑のMMR増加量に対する倍率 要調整
     tier_table: table,
