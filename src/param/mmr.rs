@@ -48,7 +48,7 @@ fn build_default_mmr_config() -> MMR {
   }
 }
 
-fn base_mmr(rank: &Rank, config: &MMRConfig) -> i32 {
+fn base_mmr(rank: &Rank, config: &MMR) -> i32 {
   match rank.tier {
     Tier::Master | Tier::Grandmaster | Tier::Challenger =>
     config.master_base_mmr + (rank.lp as f64 * config.ip_scale) as i32,
