@@ -11,8 +11,10 @@ struct MMR {
 
 
 // バランスが悪い場合調整する。
-fn build_default_mmr_config() -> MMR {
-  let mut table = HashMap::new();
+
+impl Default for MMR {
+  fn default() -> Self {
+    let mut table = HashMap::new();
 
   let mut p = |tier: Tier, division: Option<Division>, mmr: i32| {
     table.insert((tier, division), mmr);
@@ -46,14 +48,17 @@ fn build_default_mmr_config() -> MMR {
     ip_scale: 1.0, // master↑のMMR増加量に対する倍率 要調整
     tier_table: table,
   }
+  }
 }
 
-fn base_mmr(rank: &Rank, config: &MMR) -> i32 {
-  match rank.tier {
-    Tier::Master | Tier::Grandmaster | Tier::Challenger =>
-    config.master_base_mmr + (rank.lp as f64 * config.ip_scale) as i32,
-    _ => {
-      *config.tier_table.get(&(rank.tier, rank.division)).unwrap()
+impl MMR {
+  pub fn calculate_mmr(&self, rank: &Rank) -> i32 {
+    match rank.tier {
+      Tier::Master | Tier::Grandmaster | Tier::Challenger =>
+      self.master_base_mmr + (rank.lp as f64 * self.ip_scale) as i32,
+      _ => {
+        *self.tier_table.get(&(rank.tier, rank.division)).unwrap()
+      }
     }
   }
 }
