@@ -1,4 +1,4 @@
-mod player;
+mod domain;
 mod mmr;
 
 fn main() {

@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use crate::player::{Tier, Division, Rank};
+use crate::domain::{Tier, Division, Rank};
 
 #[derive(Debug, Clone, PartialEq)]
 struct MMRConfig {
