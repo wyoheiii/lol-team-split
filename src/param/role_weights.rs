@@ -8,6 +8,7 @@ struct RoleWeights {
 }
 
 // バランスが悪い場合調整する。
+// 各レーンの重み付け
 impl Default for RoleWeights {
   fn default() -> Self {
     let mut w_role = HashMap::new();
