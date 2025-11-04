@@ -1,5 +1,5 @@
 mod domain;
-mod mmr;
+mod param;
 
 fn main() {
     println!("Hello, world!");
