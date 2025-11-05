@@ -2,6 +2,12 @@ use crate::{domain::Player, pipeline::states::{Lobby, SplitTeams}, splitter::Tea
 use rand::{self, seq::SliceRandom, SeedableRng};
 pub struct RandomSplitter {seed: u64}
 
+impl RandomSplitter {
+  pub fn new(seed: u64) -> Self {
+    Self { seed }
+  }
+}
+
 impl TeamSplitter for RandomSplitter {
   fn split(&self, lobby: &Lobby) -> SplitTeams {
     let mut rng = rand::rngs::StdRng::seed_from_u64(self.seed);
