@@ -39,6 +39,23 @@ pub enum Tier {
   Challenger,
 }
 
+impl fmt::Display for Tier {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    match self {
+      Tier::Iron => write!(f, "Iron"),
+      Tier::Bronze => write!(f, "Bronze"),
+      Tier::Silver => write!(f, "Silver"),
+      Tier::Gold => write!(f, "Gold"),
+      Tier::Platinum => write!(f, "Platinum"),
+      Tier::Emerald => write!(f, "Emerald"),
+      Tier::Diamond => write!(f, "Diamond"),
+      Tier::Master => write!(f, "Master"),
+      Tier::Grandmaster => write!(f, "Grandmaster"),
+      Tier::Challenger => write!(f, "Challenger"),
+    }
+  }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Copy, Hash)]
 pub enum Division {
   I,
