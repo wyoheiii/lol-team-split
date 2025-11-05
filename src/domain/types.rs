@@ -1,3 +1,4 @@
+use std::fmt;
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Role {
   Top,
@@ -10,13 +11,16 @@ pub enum Role {
 impl Role {
   pub const All: [Role; 5] = [Role::Top, Role::Jg, Role::Mid, Role::Adc, Role::Sup];
 
-  pub fn name(&self) -> &'static str {
+}
+
+impl fmt::Display for Role {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     match self {
-      Role::Top => "Top",
-      Role::Jg => "Jg",
-      Role::Mid => "Mid",
-      Role::Adc => "Adc",
-      Role::Sup => "Sup",
+      Role::Top => write!(f, "Top"),
+      Role::Jg => write!(f, "Jg"),
+      Role::Mid => write!(f, "Mid"),
+      Role::Adc => write!(f, "ADC"),
+      Role::Sup => write!(f, "Sup"),
     }
   }
 }
@@ -56,4 +60,19 @@ pub struct Player {
   pub rank: Rank,
   pub main_role: Role,
   pub sub_role: Vec<Role>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Side {
+  Blue,
+  Red,
+}
+
+impl fmt::Display for Side {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    match self {
+      Side::Blue => write!(f, "Blue"),
+      Side::Red => write!(f, "Red"),
+    }
+  }
 }
