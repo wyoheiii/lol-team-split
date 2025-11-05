@@ -17,7 +17,7 @@ impl fmt::Display for Role {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     match self {
       Role::Top => write!(f, "Top"),
-      Role::Jg => write!(f, "Jg"),
+      Role::Jg => write!(f, "Jng"),
       Role::Mid => write!(f, "Mid"),
       Role::Adc => write!(f, "ADC"),
       Role::Sup => write!(f, "Sup"),
@@ -73,7 +73,17 @@ pub struct Rank {
 
 impl fmt::Display for Rank {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    write!(f, "{}", self.tier)
+    write!(f, "{} {}", self.tier,
+      match self.division {
+        Some(division) => match division {
+          Division::I => "I",
+          Division::II => "II",
+          Division::III => "III",
+          Division::IV => "IV",
+        },
+        None => "",
+      }
+    )
   }
 }
 
