@@ -85,6 +85,15 @@ pub struct Player {
   pub sub_role: Vec<Role>,
 }
 
+impl fmt::Display for Player {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(f, "{} {},",
+      self.name,
+      self.rank,
+    )
+  }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Side {
   Blue,
