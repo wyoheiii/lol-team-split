@@ -117,3 +117,15 @@ pub struct RoleMap<T> {
   pub adc: T,
   pub sup: T,
 }
+
+impl<T> RoleMap<T> {
+  pub fn iter(&self) -> [(&T, Role); 5] {
+      [
+        (&self.top, Role::Top),
+        (&self.jg, Role::Jg),
+        (&self.mid, Role::Mid),
+        (&self.adc, Role::Adc),
+        (&self.sup, Role::Sup),
+      ]
+    }
+}
