@@ -1,7 +1,7 @@
 use crate::pipeline::states::{AssignedTeams, Lobby};
 
-mod default;
+pub mod default;
 
-trait TeamSolver {
+pub trait TeamSolver {
   fn solve(&self, lobby: &Lobby) -> AssignedTeams;
 }
