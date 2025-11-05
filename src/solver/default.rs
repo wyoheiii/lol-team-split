@@ -7,6 +7,12 @@ pub struct DefaultSolver<S: TeamSplitter, A: RoleAssigner> {
   assigner: A,
 }
 
+impl DefaultSolver<RandomSplitter, RandomRoleAssigner> {
+  pub fn new(splitter: RandomSplitter, assigner: RandomRoleAssigner) -> Self {
+    Self { splitter, assigner }
+  }
+}
+
 impl<S: TeamSplitter, A: RoleAssigner> DefaultSolver<S, A> {
   pub fn new(splitter: S, assigner: A) -> Self {
     Self { splitter, assigner }
