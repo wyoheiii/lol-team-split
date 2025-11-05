@@ -73,7 +73,7 @@ pub struct Rank {
 
 impl fmt::Display for Rank {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    write!(f, "{}", self.tier)?;
+    write!(f, "{}", self.tier)
   }
 }
 
