@@ -71,6 +71,12 @@ pub struct Rank {
   pub lp: usize, // master+ lp
 }
 
+impl fmt::Display for Rank {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    write!(f, "{}", self.tier)?;
+  }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Player {
   pub name: String,
