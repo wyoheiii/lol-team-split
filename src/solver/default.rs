@@ -1,0 +1,19 @@
+use crate::pipeline::states::{AssignedTeams, Lobby};
+use crate::splitter::TeamSplitter;
+use crate::assigner::RoleAssigner;
+
+pub struct DefaultSolver<S: TeamSplitter, A: RoleAssigner> {
+  splitter: S,
+  assigner: A,
+}
+
+impl<S: TeamSplitter, A: RoleAssigner> DefaultSolver<S, A> {
+  pub fn new(splitter: S, assigner: A) -> Self {
+    Self { splitter, assigner }
+  }
+
+  pub fn solve(&self, lobby: &Lobby) -> AssignedTeams {
+    let split = self.splitter.split(lobby);
+    self.assigner.assign(split)
+  }
+}
