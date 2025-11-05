@@ -108,3 +108,28 @@ impl fmt::Display for Side {
     }
   }
 }
+
+#[derive(Debug, Clone)]
+pub struct RoleMap<T> {
+  top: T,
+  jg: T,
+  mid: T,
+  adc: T,
+  sup: T,
+}
+
+impl <T> RoleMap<T> {
+  pub fn new(top: T, jg: T, mid: T, adc: T, sup: T) -> Self {
+    Self { top, jg, mid, adc, sup }
+  }
+
+  pub fn get(&self, role: &Role) -> &T {
+    match role {
+      Role::Top => &self.top,
+      Role::Jg => &self.jg,
+      Role::Mid => &self.mid,
+      Role::Adc => &self.adc,
+      Role::Sup => &self.sup,
+    }
+  }
+}
