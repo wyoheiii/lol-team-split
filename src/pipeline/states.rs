@@ -17,41 +17,26 @@ impl Lobby {
 }
 
 #[derive(Clone, Debug)]
-struct SplitTeams { a: [Player; 5], b: [Player; 5] }
+pub struct SplitTeams { red: [Player; 5], blue: [Player; 5] }
 
 impl SplitTeams {
-  pub fn new(a: [Player; 5], b: [Player; 5]) -> Self {
-    assert!(a.len() == 5);
-    assert!(b.len() == 5);
-    Self { a, b }
+  pub fn new(red: [Player; 5], blue: [Player; 5]) -> Self {
+    assert!(red.len() == 5);
+    assert!(blue.len() == 5);
+    Self { red, blue }
   }
 
-  pub fn team_a(&self) -> &[Player; 5] {
-    &self.a
+  pub fn red(&self) -> &[Player; 5] {
+    &self.red
   }
 
-  pub fn team_b(&self) -> &[Player; 5] {
-    &self.b
+  pub fn blue(&self) -> &[Player; 5] {
+    &self.blue
   }
-}
-
-#[derive(Clone, Debug)]
-struct TeamAssignedNoSide { pub members: RoleMap<Player> }
-
-#[derive(Clone, Debug)]
-pub struct UnlabeledAssignedTeams {
-  pub a: TeamAssignedNoSide,
-  pub b: TeamAssignedNoSide,
-}
-
-#[derive(Clone, Debug)]
-pub struct TeamAssigned {
-  pub side: Side,
-  pub members: RoleMap<Player>,
 }
 
 #[derive(Clone, Debug)]
 pub struct AssignedTeams {
-  pub blue: TeamAssigned,
-  pub red: TeamAssigned,
+  pub red: RoleMap<Player>,
+  pub blue: RoleMap<Player>,
 }
