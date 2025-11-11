@@ -1,4 +1,4 @@
-use crate::{domain::Player, domain::states::{Lobby, SplitTeams}, splitter::TeamSplitter};
+use crate::{domain::Player, domain::states::{Lobby, SplitTeams}, pipeline::TeamSplitter};
 use rand::{self, seq::SliceRandom, SeedableRng};
 pub struct RandomSplitter {seed: u64}
 

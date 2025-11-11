@@ -1,4 +1,4 @@
-use crate::{assigner::RoleAssigner, domain::{types::RoleMap, Player}, domain::states::{AssignedTeams, SplitTeams}};
+use crate::{pipeline::RoleAssigner, domain::{types::RoleMap, Player}, domain::states::{AssignedTeams, SplitTeams}};
 use rand::{rngs::StdRng, seq::SliceRandom, SeedableRng};
 pub struct RandomRoleAssigner { seed: u64 }
 
