@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::domain::Role;
 
 #[derive(Debug, Clone, PartialEq)]
-struct RoleWeights {
+pub struct RoleWeights {
   w_role: HashMap<Role, f64>,
 }
 

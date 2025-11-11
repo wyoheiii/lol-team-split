@@ -9,7 +9,7 @@ struct PenaltyRolePair {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-struct PenaltyMatrix {
+pub struct PenaltyMatrix {
   sub_role_penalty: i32,
   off_role_penalty: i32,
 
