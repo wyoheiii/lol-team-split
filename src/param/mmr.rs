@@ -52,15 +52,15 @@ impl Default for MMR {
 }
 
 impl MMR {
-  pub fn calculate(&self, rank: &Rank) -> i32 {
+  pub fn calculate(&self, rank: &Rank) -> f64 {
     match rank {
       Rank::BelowMaster { tier, division } => {
-        *self.tier_table.get(&(*tier, *division)).unwrap()
+        *self.tier_table.get(&(*tier, *division)).unwrap() as f64
       }
-      Rank::MasterLeague { tier, lp } => {
+      Rank::MasterLeague { tier:_, lp } => {
         let base = self.master_base_mmr;
-        let extra = (*lp as f64 * self.ip_scale) as i32;
-        base + extra
+        let extra = (*lp as f64 * self.ip_scale) as f64;
+        base as f64 + extra
       }
     }
   }
