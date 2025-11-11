@@ -14,7 +14,6 @@ mod pipeline;
 mod splitter;
 mod assigner;
 mod print;
-mod solver;
 mod demo_lobby;
 
 
