@@ -24,3 +24,9 @@ impl Default for RoleWeights {
     }
   }
 }
+
+impl RoleWeights {
+  pub fn weight(&self, role: &Role) -> f64 {
+    *self.w_role.get(role).unwrap_or(&1.0)
+  }
+}
