@@ -7,6 +7,9 @@ use crate::{domain::{states::{Lobby, SplitTeams}, Player, Role}, param::mmr::MMR
 pub struct RoleSnakeSplitter{ pub mmr: MMR }
 
 impl RoleSnakeSplitter {
+  pub fn new(mmr: MMR) -> Self {
+    Self { mmr }
+  }
   fn sort_by_main_role(&self, lobby: &Lobby) -> HashMap<Role, Vec<Player>> {
     let mut by_role: HashMap<Role, Vec<Player>> = HashMap::new();
 
@@ -20,7 +23,7 @@ impl RoleSnakeSplitter {
       v.sort_by(|a, b| {
         let mmr_a = self.mmr.calculate(&a.rank);
         let mmr_b = self.mmr.calculate(&b.rank);
-        mmr_b.partial_cmp(&mmr_a).unwrap()
+        mmr_a.partial_cmp(&mmr_b).unwrap()
       });
     }
 
