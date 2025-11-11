@@ -22,18 +22,18 @@ impl Default for PenaltyMatrix {
   fn default() -> Self {
     let mut transition_penalty = HashMap::new();
 
-    transition_penalty.insert(PenaltyRolePair { main:Role::Sup, assign: Role::Top }, 150);
-    transition_penalty.insert(PenaltyRolePair { main:Role::Sup, assign: Role::Mid }, 150);
-    transition_penalty.insert(PenaltyRolePair { main:Role::Sup, assign: Role::Jg }, 150);
-    transition_penalty.insert(PenaltyRolePair { main:Role::Adc, assign: Role::Sup }, 80);
-    transition_penalty.insert(PenaltyRolePair { main:Role::Jg, assign: Role::Top }, 110);
-    transition_penalty.insert(PenaltyRolePair { main:Role::Jg, assign: Role::Mid }, 110);
-    transition_penalty.insert(PenaltyRolePair { main:Role::Jg, assign: Role::Adc }, 110);
+    transition_penalty.insert(PenaltyRolePair { main:Role::Sup, assign: Role::Top }, 50);
+    transition_penalty.insert(PenaltyRolePair { main:Role::Sup, assign: Role::Mid }, 50);
+    transition_penalty.insert(PenaltyRolePair { main:Role::Sup, assign: Role::Jg }, 50);
+    transition_penalty.insert(PenaltyRolePair { main:Role::Adc, assign: Role::Sup }, -30);
+    transition_penalty.insert(PenaltyRolePair { main:Role::Jg, assign: Role::Top }, 10);
+    transition_penalty.insert(PenaltyRolePair { main:Role::Jg, assign: Role::Mid }, 10);
+    transition_penalty.insert(PenaltyRolePair { main:Role::Jg, assign: Role::Adc }, 10);
 
 
     Self {
-      sub_role_penalty: 50,
-      off_role_penalty: 125,
+      sub_role_penalty: 100,
+      off_role_penalty: 150,
       role_transition_penalty_map: transition_penalty,
     }
   }
