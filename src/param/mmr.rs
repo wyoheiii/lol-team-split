@@ -1,12 +1,12 @@
 use std::collections::HashMap;
-use crate::domain::{Tier, Division, Rank};
+use crate::domain::{Division, Rank, TierBelowMaster};
 
 #[derive(Debug, Clone, PartialEq)]
-struct MMR {
+pub struct MMR {
   master_base_mmr: i32,
   ip_scale: f64,
 
-  tier_table: HashMap<(Tier, Option<Division>), i32>,
+  tier_table: HashMap<(TierBelowMaster, Division), i32>,
 }
 
 
@@ -16,18 +16,18 @@ impl Default for MMR {
   fn default() -> Self {
     let mut table = HashMap::new();
 
-  let mut p = |tier: Tier, division: Option<Division>, mmr: i32| {
+  let mut p = |tier: TierBelowMaster, division: Division, mmr: i32| {
     table.insert((tier, division), mmr);
   };
 
   let tiers = [
-    (Tier::Iron, 200),
-    (Tier::Bronze, 300),
-    (Tier::Silver, 400),
-    (Tier::Gold, 500),
-    (Tier::Platinum, 600),
-    (Tier::Emerald, 700),
-    (Tier::Diamond, 800),
+    (TierBelowMaster::Iron, 200),
+    (TierBelowMaster::Bronze, 300),
+    (TierBelowMaster::Silver, 400),
+    (TierBelowMaster::Gold, 500),
+    (TierBelowMaster::Platinum, 600),
+    (TierBelowMaster::Emerald, 700),
+    (TierBelowMaster::Diamond, 800),
   ];
 
   let div_offsets = [
@@ -39,7 +39,7 @@ impl Default for MMR {
 
   for (tier, base) in tiers {
     for (div, off) in div_offsets {
-      p(tier, Some(div), base + off);
+      p(tier, div, base + off);
     }
   }
 
@@ -52,12 +52,15 @@ impl Default for MMR {
 }
 
 impl MMR {
-  pub fn calculate_mmr(&self, rank: &Rank) -> i32 {
-    match rank.tier {
-      Tier::Master | Tier::Grandmaster | Tier::Challenger =>
-      self.master_base_mmr + (rank.lp as f64 * self.ip_scale) as i32,
-      _ => {
-        *self.tier_table.get(&(rank.tier, rank.division)).unwrap()
+  pub fn calculate(&self, rank: &Rank) -> i32 {
+    match rank {
+      Rank::BelowMaster { tier, division } => {
+        *self.tier_table.get(&(*tier, *division)).unwrap()
+      }
+      Rank::MasterLeague { tier, lp } => {
+        let base = self.master_base_mmr;
+        let extra = (*lp as f64 * self.ip_scale) as i32;
+        base + extra
       }
     }
   }
