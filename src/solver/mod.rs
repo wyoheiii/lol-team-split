@@ -1,4 +1,4 @@
-use crate::pipeline::states::{AssignedTeams, Lobby};
+use crate::domain::states::{AssignedTeams, Lobby};
 
 pub mod default;
 

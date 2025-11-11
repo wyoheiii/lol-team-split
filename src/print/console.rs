@@ -1,5 +1,5 @@
 use crate::domain::Player;
-use crate::pipeline::states::AssignedTeams;
+use crate::domain::states::AssignedTeams;
 use crate::domain::types::{RoleMap, Side};
 
 pub fn print_teams(teams: &AssignedTeams) {

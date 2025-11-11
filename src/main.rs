@@ -1,4 +1,4 @@
-use crate::{domain::Rank, pipeline::states::Lobby};
+use crate::{domain::Rank, domain::states::Lobby};
 use crate::solver::TeamSolver;
 use crate::splitter::random::RandomSplitter;
 use crate::assigner::random::RandomRoleAssigner;

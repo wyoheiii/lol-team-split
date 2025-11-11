@@ -1,5 +1,5 @@
 use crate::domain::{Division, Player, Rank, Role, TierBelowMaster, MasterLeague};
-use crate::pipeline::states::Lobby;
+use crate::domain::states::Lobby;
 
 fn br(tier: TierBelowMaster, div: Division) -> Rank{
   Rank::BelowMaster { tier, division: div }

@@ -1,4 +1,4 @@
-use crate::{param::mmr, pipeline::states::Lobby};
+use crate::{param::mmr, domain::states::Lobby};
 
 
 
@@ -27,7 +27,7 @@ pub struct LobbyStats {
 
 impl LobbyStats {
 pub fn from_players(players: &Lobby) -> Self {
-let mut vals: Vec<f64> = players.iter().map(|p| abs_mmr_from_rank(p.rank, &RatingModelCfg::default())).collect();
+let mut vals: Vec<f64> = players.players().iter().map(|p| abs_mmr_from_rank(p.rank, &RatingModelCfg::default())).collect();
 if vals.is_empty() { return Self{ mean:0.0, std:1.0 }; }
 let n = vals.len() as f64;
 let mean = vals.iter().sum::<f64>() / n;
