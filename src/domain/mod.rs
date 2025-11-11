@@ -1,2 +1,2 @@
 pub mod types;
-pub use types::{Role, Tier, Division, Rank, Player};
+pub use types::{Role, TierBelowMaster, MasterLeague, Division, Rank, Player};

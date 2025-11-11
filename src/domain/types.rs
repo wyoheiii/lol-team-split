@@ -26,32 +26,31 @@ impl fmt::Display for Role {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Copy, Hash)]
-pub enum Tier {
-  Iron,
-  Bronze,
-  Silver,
-  Gold,
-  Platinum,
-  Emerald,
-  Diamond,
-  Master,
-  Grandmaster,
-  Challenger,
-}
+pub enum TierBelowMaster { Iron, Bronze, Silver, Gold, Platinum, Emerald, Diamond }
 
-impl fmt::Display for Tier {
+impl fmt::Display for TierBelowMaster {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     match self {
-      Tier::Iron => write!(f, "Iron"),
-      Tier::Bronze => write!(f, "Bronze"),
-      Tier::Silver => write!(f, "Silver"),
-      Tier::Gold => write!(f, "Gold"),
-      Tier::Platinum => write!(f, "Platinum"),
-      Tier::Emerald => write!(f, "Emerald"),
-      Tier::Diamond => write!(f, "Diamond"),
-      Tier::Master => write!(f, "Master"),
-      Tier::Grandmaster => write!(f, "Grandmaster"),
-      Tier::Challenger => write!(f, "Challenger"),
+      TierBelowMaster::Iron => write!(f, "Iron"),
+      TierBelowMaster::Bronze => write!(f, "Bronze"),
+      TierBelowMaster::Silver => write!(f, "Silver"),
+      TierBelowMaster::Gold => write!(f, "Gold"),
+      TierBelowMaster::Platinum => write!(f, "Platinum"),
+      TierBelowMaster::Emerald => write!(f, "Emerald"),
+      TierBelowMaster::Diamond => write!(f, "Diamond"),
+    }
+  }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Copy, Hash)]
+pub enum MasterLeague { Master, Grandmaster, Challenger }
+
+impl fmt::Display for MasterLeague {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    match self {
+      MasterLeague::Master => write!(f, "Master"),
+      MasterLeague::Grandmaster => write!(f, "Grandmaster"),
+      MasterLeague::Challenger => write!(f, "Challenger"),
     }
   }
 }
@@ -65,25 +64,24 @@ pub enum Division {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Copy)]
-pub struct Rank {
-  pub tier: Tier,
-  pub division: Option<Division>,
-  pub lp: usize, // master+ lp
+pub enum Rank {
+  BelowMaster {
+    tier: TierBelowMaster,
+    division: Division,
+  },
+  MasterLeague { tier: MasterLeague , lp: u32 },
 }
 
 impl fmt::Display for Rank {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    write!(f, "{} {}", self.tier,
-      match self.division {
-        Some(division) => match division {
-          Division::I => "I",
-          Division::II => "II",
-          Division::III => "III",
-          Division::IV => "IV",
-        },
-        None => "",
+    match self {
+      Rank::BelowMaster { tier, division } => {
+        write!(f, "{} {:?}", tier, division)
       }
-    )
+      Rank::MasterLeague { tier, lp } => {
+        write!(f, "{} {}LP", tier, lp)
+      }
+    }
   }
 }
 
