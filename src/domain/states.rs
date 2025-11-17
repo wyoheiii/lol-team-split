@@ -1,4 +1,4 @@
-use crate::domain::{types::{RoleMap, Side}, Player};
+use crate::domain::{types::{RoleMap}, Player};
 
 
 
@@ -13,25 +13,6 @@ impl Lobby {
 
   pub fn players(&self) -> &[Player; 10] {
     &self.players
-  }
-}
-
-#[derive(Clone, Debug)]
-pub struct SplitTeams { red: [Player; 5], blue: [Player; 5] }
-
-impl SplitTeams {
-  pub fn new(red: [Player; 5], blue: [Player; 5]) -> Self {
-    assert!(red.len() == 5);
-    assert!(blue.len() == 5);
-    Self { red, blue }
-  }
-
-  pub fn red(&self) -> &[Player; 5] {
-    &self.red
-  }
-
-  pub fn blue(&self) -> &[Player; 5] {
-    &self.blue
   }
 }
 
