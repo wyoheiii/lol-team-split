@@ -136,7 +136,7 @@ impl JointEnumeratingOptimizer {
     /// 5人に対してロール割り当て＋Team構造体を作る
     fn build_team(&self, team_players: &[Player; 5], priority_main: &HashSet<u32>) -> Team {
       let mut rng = self.rng.borrow_mut();
-      let (role_map, key, score) = self.evaluator.best_assignment(team_players, Some(&mut rng), priority_main);
+      let (role_map, key, _) = self.evaluator.best_assignment(team_players, Some(&mut rng), priority_main);
       let effs = self.evaluator.role_effw(&role_map, priority_main);
       let sum = effs.iter().sum::<f64>();
 
@@ -201,7 +201,7 @@ impl JointEnumeratingOptimizer {
         break;
       }
 
-      let mut r = rng.gen_range(0.0..total);
+      let mut r = rng.random_range(0.0..total);
       let mut pick_pos = 0;
       for (pos, &i) in idxs.iter().enumerate() {
         let w = weights[i].max(0.0);

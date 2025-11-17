@@ -12,8 +12,8 @@ pub struct Eval {
   pub mmr : mmr::MMR,
   pub flex_bias_alpha: f64, // レートが低いほど希望ロール優先
   pub score: TeamScore,
-  pub power_margin: f64, // チーム総合力差がこの範囲なら「ほぼ同じ」
-  pub lane_margin: f64, // レーン差もこの範囲なら「ほぼ同じ」
+  // pub power_margin: f64, // チーム総合力差がこの範囲なら「ほぼ同じ」
+  // pub lane_margin: f64, // レーン差もこの範囲なら「ほぼ同じ」
   pub score_margin: f64, // スコア許容マージン
   pub priority_main_bonus: f64,  // メイン優遇ボーナス(MMR換算)
 }
@@ -25,8 +25,8 @@ impl Default for Eval {
       flex_bias_alpha: 0.15,
       //score: TeamScore::TopK { k: 2 },
       score: TeamScore::Softmax { tau: 220.0 },
-      power_margin: 10.0,
-      lane_margin: 40.0,
+      // power_margin: 10.0,
+      // lane_margin: 40.0,
       score_margin: 40.0,
       priority_main_bonus: 40.0,
     }

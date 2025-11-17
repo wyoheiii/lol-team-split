@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use rand::{Rng, RngCore};
+use rand::Rng;
 
 use crate::domain::types::{Player, Role, RoleMap};
 use crate::param::eval::{EvalContext, TeamScore, penalty_multiplier_from_z};
