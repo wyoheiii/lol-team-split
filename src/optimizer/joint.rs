@@ -2,7 +2,7 @@ use rand::{rngs::StdRng, Rng, SeedableRng};
 use crate::pipeline::TeamOptimizer;
 use crate::domain::states::{AssignedTeams, Lobby};
 use crate::domain::types::Player;
-use crate::engine::evaluator::{Evaluator, EvalState};
+use crate::engine::evaluator::{Evaluator};
 
 
 pub struct JointEnumeratingOptimizer {
@@ -20,7 +20,6 @@ impl JointEnumeratingOptimizer {
 
 impl TeamOptimizer for JointEnumeratingOptimizer {
   fn optimize(&self, lobby: &Lobby) -> AssignedTeams {
-  let st: EvalState = self.evaluator.state_for(lobby);
   let players = lobby.players();
 
 
@@ -43,8 +42,8 @@ impl TeamOptimizer for JointEnumeratingOptimizer {
 
 
   // 各チームで「希望>サブ>オフ（オフは高MMR担当）」の最良割当を確定
-  let (red_map, _kr, sr) = self.evaluator.best_assignment(&st, &red);
-  let (blue_map, _kb, sb) = self.evaluator.best_assignment(&st, &blue);
+  let (red_map, _kr, sr) = self.evaluator.best_assignment( &red);
+  let (blue_map, _kb, sb) = self.evaluator.best_assignment(&blue);
   let diff = (sr - sb).abs();
 
 

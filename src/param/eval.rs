@@ -3,13 +3,13 @@ use crate::{domain::states::Lobby, param::{mmr::{self, MMR}, penalty_matrix::Pen
 
 #[derive(Debug, Clone, Copy)]
 pub enum TeamScore {
-  Softmax { tau: f64 },
+  // Softmax { tau: f64 },
   TopK { k: usize },
 }
 
 #[derive(Debug, Clone)]
 pub struct Eval {
-  pub softmax_tau: f64,
+  // pub softmax_tau: f64,
   pub mmr : mmr::MMR,
   pub flex_bias_alpha: f64, // レートが低いほど希望ロール優先
   pub score: TeamScore,
@@ -18,7 +18,7 @@ pub struct Eval {
 impl Default for Eval {
   fn default() -> Self {
     Eval {
-      softmax_tau: 150.0,
+      // softmax_tau: 150.0,
       mmr: mmr::MMR::default(),
       flex_bias_alpha: 0.15,
       score: TeamScore::TopK { k: 2 },
@@ -36,7 +36,7 @@ pub struct LobbyStats {
 
 impl LobbyStats {
 pub fn from_lobby(lobby: &Lobby, mmr: &MMR) -> Self {
-    let mut vals: Vec<f64> = lobby.players().iter().map(|p| mmr.calculate(&p.rank)).collect();
+    let vals: Vec<f64> = lobby.players().iter().map(|p| mmr.calculate(&p.rank)).collect();
     if vals.is_empty() {
       return Self{ mean:0.0, std:1.0 };
     }
