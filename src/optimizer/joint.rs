@@ -1,6 +1,6 @@
 use rand::{rngs::StdRng, Rng, SeedableRng};
 use crate::pipeline::TeamOptimizer;
-use crate::domain::states::{AssignedTeams, Lobby};
+use crate::domain::states::{AssignedTeams, Lobby, Team};
 use crate::domain::types::Player;
 use crate::engine::evaluator::{Evaluator};
 
@@ -29,7 +29,8 @@ impl TeamOptimizer for JointEnumeratingOptimizer {
 
   for mask in 0u16..(1<<10) {
     if mask.count_ones() != 5 { continue; }
-    let mut red = Vec::with_capacity(5); let mut blue = Vec::with_capacity(5);
+    let mut red = Vec::with_capacity(5);
+    let mut blue = Vec::with_capacity(5);
   for i in 0..10 {
     if (mask>>i)&1 == 1 {
       red.push(players[i].clone());
@@ -42,17 +43,33 @@ impl TeamOptimizer for JointEnumeratingOptimizer {
 
 
   // 各チームで「希望>サブ>オフ（オフは高MMR担当）」の最良割当を確定
-  let (red_map, _kr, sr) = self.evaluator.best_assignment( &red);
-  let (blue_map, _kb, sb) = self.evaluator.best_assignment(&blue);
-  let diff = (sr - sb).abs();
+  let (red_map,  key_r, sr) = self.evaluator.best_assignment( &red);
+  let red_team  = Team {
+    players: red_map,
+    main: (5 - key_r.sub_count - key_r.off_count),
+    sub: key_r.sub_count,
+    off: key_r.off_count,
+    power: sr
+  };
 
+  let (blue_map, key_b, sb) = self.evaluator.best_assignment( &blue);
+  let blue_team = Team {
+    players: blue_map,
+    main: (5 - key_b.sub_count - key_b.off_count),
+    sub: key_b.sub_count,
+    off: key_b.off_count,
+    power: sb
+  };
+  let assigned = AssignedTeams { red: red_team, blue: blue_team };
+
+  let diff = (sr - sb).abs();
 
   if diff + 1e-9 < best_val {
     best_val = diff; cands.clear();
-    cands.push(AssignedTeams{ red: red_map, blue: blue_map });
+    cands.push(assigned);
   }
   else if (diff - best_val).abs() <= 1e-9 {
-    cands.push(AssignedTeams{ red: red_map, blue: blue_map });
+    cands.push(assigned);
   }
 }
 

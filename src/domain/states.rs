@@ -17,7 +17,16 @@ impl Lobby {
 }
 
 #[derive(Clone, Debug)]
+pub struct Team {
+  pub players: RoleMap<Player>,
+  pub main: usize,
+  pub sub: usize,
+  pub off: usize,
+  pub power: f64,
+}
+
+#[derive(Clone, Debug)]
 pub struct AssignedTeams {
-  pub red: RoleMap<Player>,
-  pub blue: RoleMap<Player>,
+  pub red: Team,
+  pub blue: Team,
 }
