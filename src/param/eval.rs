@@ -3,25 +3,29 @@ use crate::{domain::states::Lobby, param::{mmr::{self, MMR}, penalty_matrix::Pen
 
 #[derive(Debug, Clone, Copy)]
 pub enum TeamScore {
-  // Softmax { tau: f64 },
+  Softmax { tau: f64 },
   TopK { k: usize },
 }
 
 #[derive(Debug, Clone)]
 pub struct Eval {
-  // pub softmax_tau: f64,
   pub mmr : mmr::MMR,
   pub flex_bias_alpha: f64, // レートが低いほど希望ロール優先
   pub score: TeamScore,
+  pub power_margin: f64, // チーム総合力差がこの範囲なら「ほぼ同じ」
+  pub lane_margin: f64, // レーン差もこの範囲なら「ほぼ同じ」
 }
 
 impl Default for Eval {
   fn default() -> Self {
     Eval {
-      // softmax_tau: 150.0,
       mmr: mmr::MMR::default(),
       flex_bias_alpha: 0.15,
-      score: TeamScore::TopK { k: 2 },
+      //score: TeamScore::TopK { k: 2 },
+      score: TeamScore::Softmax { tau: 220.0 },
+      power_margin: 10.0,
+      lane_margin: 40.0,
+
     }
   }
 }
@@ -56,7 +60,7 @@ pub fn from_lobby(lobby: &Lobby, mmr: &MMR) -> Self {
 
 // zスコアからペナルティ倍率を算出
 pub fn penalty_multiplier_from_z(z: f64, alpha: f64) -> f64 {
-  (1.0 + (-z) * alpha).clamp(0.6, 1.8)
+  (1.0 - z * alpha).clamp(0.6, 1.8)
 }
 
 
