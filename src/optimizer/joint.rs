@@ -1,6 +1,8 @@
 use std::cell::RefCell;
+use std::collections::{HashMap, HashSet};
 
 use rand::{rngs::StdRng, Rng, SeedableRng, rng};
+use crate::domain::Role;
 use crate::pipeline::TeamOptimizer;
 use crate::domain::states::{AssignedTeams, Lobby, Team};
 use crate::domain::types::Player;
@@ -132,10 +134,10 @@ impl JointEnumeratingOptimizer {
     }
 
     /// 5人に対してロール割り当て＋Team構造体を作る
-    fn build_team(&self, team_players: &[Player; 5]) -> Team {
+    fn build_team(&self, team_players: &[Player; 5], priority_main: &HashSet<u32>) -> Team {
       let mut rng = self.rng.borrow_mut();
-      let (role_map, key, score) = self.evaluator.best_assignment(team_players, Some(&mut rng));
-      let effs = self.evaluator.role_effw(&role_map);
+      let (role_map, key, score) = self.evaluator.best_assignment(team_players, Some(&mut rng), priority_main);
+      let effs = self.evaluator.role_effw(&role_map, priority_main);
       let sum = effs.iter().sum::<f64>();
 
       Team {
@@ -145,12 +147,87 @@ impl JointEnumeratingOptimizer {
         power: sum,
       }
     }
+
+  fn pick_priority_main(
+    &self,
+    lobby: &Lobby,
+  ) -> HashSet<u32> {
+    let players = lobby.players();
+    let mmr = &self.evaluator.cfg.eval.mmr;
+
+    // main_role ごとにグループ化
+    let mut by_main: HashMap<Role, Vec<&Player>> = HashMap::new();
+    for p in players {
+      by_main.entry(p.main_role).or_default().push(p);
+    }
+
+    // ★ レーン被り組だけ候補にする
+    let mut candidates: Vec<&Player> = Vec::new();
+    for (_role, group) in &by_main {
+      if group.len() >= 2 {
+        candidates.extend(group.iter().copied());
+      }
+    }
+    if candidates.is_empty() {
+      return HashSet::new();
+    }
+
+    // 低レートほど重くする（z がマイナスほど重く）
+    let mut weights: Vec<f64> = Vec::with_capacity(candidates.len());
+    for p in &candidates {
+      let base = mmr.calculate(&p.rank);
+      let z = self.evaluator.cfg.lobby.z_from(base); // 平均より低いと z<0
+      // ざっくり: z=-2 → w≈1.5, z=0→1.0, z=+2→0.5
+      let w = ((1.0 - 0.25 * z) as f64).clamp(0.2, 2.0);
+      weights.push(w);
+    }
+
+    let k = candidates.len().min(3); // 最大3人
+    let mut chosen = HashSet::new();
+    let mut idxs: Vec<usize> = (0..candidates.len()).collect();
+    let mut rng = self.rng.borrow_mut();
+
+    for _ in 0..k {
+      if idxs.is_empty() {
+        break;
+      }
+
+      // 重み付きサンプリング (without replacement)
+      let mut total = 0.0;
+      for &i in &idxs {
+        total += weights[i].max(0.0);
+      }
+      if total <= 0.0 {
+        break;
+      }
+
+      let mut r = rng.gen_range(0.0..total);
+      let mut pick_pos = 0;
+      for (pos, &i) in idxs.iter().enumerate() {
+        let w = weights[i].max(0.0);
+        if r <= w {
+          pick_pos = pos;
+          break;
+        }
+        r -= w;
+      }
+      let i = idxs.remove(pick_pos);
+      let pid  = candidates[i].id.clone(); // ← 実際のフィールドに合わせて
+      chosen.insert(pid);
+    }
+
+    chosen
+  }
 }
 
 
 impl TeamOptimizer for JointEnumeratingOptimizer {
   fn optimize(&self, lobby: &Lobby) -> AssignedTeams {
     let players = lobby.players();
+
+
+    // ロビー全体から「レーン被り＋低レート」を重み付きで最大3人選ぶ
+    let priority_main = self.pick_priority_main(lobby);
 
     // ① まずMMRの和だけでチーム分割を決める
     let (red_idx, blue_idx) = self.best_mmr_split(players);
@@ -162,8 +239,8 @@ impl TeamOptimizer for JointEnumeratingOptimizer {
     let blue_arr: [Player; 5] = blue_vec.try_into().unwrap();
 
     // ③ 各チーム内で「希望＞サブ＞オフ＋低レート優先＋ランダム性」でロール割り当て
-    let red_team  = self.build_team(&red_arr);
-    let blue_team = self.build_team(&blue_arr);
+    let red_team  = self.build_team(&red_arr, &priority_main);
+    let blue_team = self.build_team(&blue_arr, &priority_main);
 
     AssignedTeams { red: red_team, blue: blue_team }
   }

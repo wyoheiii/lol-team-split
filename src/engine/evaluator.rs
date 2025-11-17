@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use rand::{Rng, RngCore};
 
 use crate::domain::types::{Player, Role, RoleMap};
@@ -21,21 +23,86 @@ impl Evaluator {
   }
 
   /// 希望>サブ>オフ（オフは高MMR担当）で最良割当とスコア
-  pub fn best_assignment(
+   pub fn best_assignment<R: Rng + ?Sized>(
     &self,
     team: &[Player; 5],
-    rng: Option<&mut dyn RngCore>,
-    ) -> (RoleMap<Player>, PrefKey, f64) {
-      let (pick, key, score) = self.best_perm_pref_first(team, rng);
-      let map = RoleMap {
-        top: team[pick[0]].clone(),
-        jg:  team[pick[1]].clone(),
-        mid: team[pick[2]].clone(),
-        adc: team[pick[3]].clone(),
-        sup: team[pick[4]].clone(),
+    rng: Option<&mut R>,
+    priority_main: &HashSet<u32>,
+  ) -> (RoleMap<Player>, PrefKey, f64) {
+    let (pick, key, score) =
+      self.best_perm_pref_first(team, rng, priority_main);
+
+    let map = RoleMap {
+      top: team[pick[0]].clone(),
+      jg:  team[pick[1]].clone(),
+      mid: team[pick[2]].clone(),
+      adc: team[pick[3]].clone(),
+      sup: team[pick[4]].clone(),
+    };
+    (map, key, score)
+  }
+
+  fn best_perm_pref_first<R: Rng + ?Sized>(
+    &self,
+    team: &[Player; 5],
+    mut rng: Option<&mut R>,
+    priority_main: &HashSet<u32>,
+  ) -> ([usize; 5], PrefKey, f64) {
+    let roles_arr = Role::ALL;
+    let idxs = [0usize, 1, 2, 3, 4];
+
+    let mut best_off = usize::MAX;
+    let mut best_score = f64::NEG_INFINITY;
+    let mut candidates: Vec<([usize; 5], PrefKey, f64)> = Vec::new();
+
+    for perm in permutations(idxs) {
+      let mut off = 0usize;
+      let mut effw = [0.0f64; 5];
+
+      for (ri, &role) in roles_arr.iter().enumerate() {
+        let p = &team[perm[ri]];
+        let r = self.score(p, role, priority_main);
+        effw[ri] = r.effw;
+        off += r.off_delta;
+      }
+
+      let score = match self.cfg.eval.score {
+        TeamScore::Softmax { tau } => softmax_score(&effw, tau),
+        TeamScore::TopK { k } => topk_score(&effw, k),
       };
-      (map, key, score)
+
+      if off < best_off {
+        best_off = off;
+        best_score = score;
+        candidates.clear();
+        candidates.push((perm, PrefKey { off_count: off }, score));
+      } else if off == best_off {
+        if score > best_score {
+          best_score = score;
+        }
+        candidates.push((perm, PrefKey { off_count: off }, score));
+      }
     }
+
+    let mut filtered: Vec<([usize; 5], PrefKey, f64)> = candidates
+      .into_iter()
+      .filter(|(_, _, s)| *s >= best_score - self.cfg.eval.score_margin)
+      .collect();
+
+    if filtered.len() <= 1 || rng.is_none() {
+      let (perm, key, score) = filtered
+        .into_iter()
+        .max_by(|a, b| a.2.partial_cmp(&b.2).unwrap())
+        .unwrap();
+      return (perm, key, score);
+    }
+
+    let r = rng.as_deref_mut().unwrap();
+    let idx = r.random_range(0..filtered.len());
+    let (perm, key, score) = filtered.swap_remove(idx);
+
+    (perm, key, score)
+  }
 
 
   // /// 分割評価用（割当は返さずスコアだけ）
@@ -44,7 +111,7 @@ impl Evaluator {
   //   (key, score)
   // }
 
-  pub fn role_effw(&self, assigned: &RoleMap<Player>) -> [f64; 5] {
+  pub fn role_effw(&self, assigned: &RoleMap<Player>, priority_main: &HashSet<u32>) -> [f64; 5] {
     let pairs: [(Role, &Player); 5] = [
       (Role::Top, &assigned.top),
       (Role::Jg,  &assigned.jg),
@@ -55,150 +122,57 @@ impl Evaluator {
 
     let mut effw = [0.0; 5];
     for (i, (role, p)) in pairs.iter().enumerate() {
-      let r = self.score(p, *role);
+      let r = self.score(p, *role, priority_main);
       effw[i] = r.effw;
     }
     effw
   }
 
-  fn score(&self, p: &Player, role: Role) -> RoleEval {
-      let base = self.cfg.eval.mmr.calculate(&p.rank);
-      let is_main = role == p.main_role;
-      let is_sub = !is_main && p.sub_role.contains(&role);
+  fn score(
+    &self,
+    p: &Player,
+    role: Role,
+    priority_main: &HashSet<u32>,
+  ) -> RoleEval {
+    let base = self.cfg.eval.mmr.calculate(&p.rank);
+    let is_main = role == p.main_role;
+    let is_sub = !is_main && p.sub_role.contains(&role);
 
-      let mut off_delta = 0usize;
-      let mut sub_delta = 0usize;
-      let mut off_mmr_neg_delta = 0f64;
+    let mut off_delta = 0usize;
+    let mut sub_delta = 0usize;
+    let mut off_mmr_neg_delta = 0f64;
 
-      if !is_main && !is_sub {
-          off_delta = 1;
-          off_mmr_neg_delta = -base;
-      }
-      if is_sub {
-          sub_delta = 1;
-      }
-
-      let z = self.cfg.lobby.z_from(base);
-      let pen = self.cfg.penalty.total_penalty(p, role)
-          as f64
-          * penalty_multiplier_from_z(z, self.cfg.eval.flex_bias_alpha);
-
-      let eff = base - pen;
-      let effw = eff * self.cfg.role_weight.weight(&role);
-
-      RoleEval {
-          effw,
-          off_delta,
-          sub_delta,
-          off_mmr_neg_delta,
-      }
-  }
-
-  // pub fn score_assigned(&self, assigned: &RoleMap<Player>) -> (PrefKey, f64) {
-  //   let pairs: [(Role, &Player); 5] = [
-  //     (Role::Top, &assigned.top),
-  //     (Role::Jg,  &assigned.jg),
-  //     (Role::Mid, &assigned.mid),
-  //     (Role::Adc, &assigned.adc),
-  //     (Role::Sup, &assigned.sup),
-  //   ];
-
-  //   let mut off = 0usize;
-  //   let mut sub = 0usize;
-  //   let mut off_mmr_neg_sum = 0f64;
-  //   let mut effw = [0f64; 5];
-
-  //   for (i, (role, p)) in pairs.iter().enumerate() {
-  //     let r = self.score(p, *role);
-  //     effw[i] = r.effw;
-  //     off += r.off_delta;
-  //     sub += r.sub_delta;
-  //     off_mmr_neg_sum += r.off_mmr_neg_delta;
-  //   }
-
-  //   let score = match self.cfg.eval.score {
-  //     // TeamScore::Softmax { tau } => softmax_score(&effw, tau),
-  //     TeamScore::TopK { k } => topk_score(&effw, k),
-  //   };
-
-  //   (
-  //     PrefKey {
-  //       off_count: off,
-  //       off_mmr_neg_sum,
-  //       sub_count: sub,
-  //     },
-  //     score,
-  //   )
-  // }
-
-  fn best_perm_pref_first<R: Rng + ?Sized>(
-      &self,
-      team: &[Player; 5],
-      mut rng: Option<&mut R>,
-    ) -> ([usize; 5], PrefKey, f64) {
-      let roles_arr = Role::ALL;
-      let idxs = [0usize, 1, 2, 3, 4];
-
-      // まず「オフ人数最小 & スコアそこそこ良い」候補を集める
-      let mut best_off = usize::MAX;
-      let mut best_score = f64::NEG_INFINITY;
-
-      // (perm, key, score) の候補リスト
-      let mut candidates: Vec<([usize; 5], PrefKey, f64)> = Vec::new();
-
-      for perm in permutations(idxs) {
-        let mut off = 0usize;
-        let mut effw = [0.0f64; 5];
-
-        for (ri, &role) in roles_arr.iter().enumerate() {
-          let p = &team[perm[ri]];
-          let r = self.score(p, role);
-          effw[ri] = r.effw;
-          off += r.off_delta;
-        }
-
-        let score = match self.cfg.eval.score {
-          TeamScore::Softmax { tau } => softmax_score(&effw, tau),
-          TeamScore::TopK { k }      => topk_score(&effw, k),
-        };
-
-        // まずは「オフ人数で足切り」
-        if off < best_off {
-          best_off = off;
-          best_score = score;
-          candidates.clear();
-          candidates.push((perm, PrefKey { off_count: off }, score));
-        } else if off == best_off {
-          // 同じオフ人数なら、候補に追加しながら best_score を更新
-          if score > best_score {
-            best_score = score;
-          }
-          candidates.push((perm, PrefKey { off_count: off }, score));
-        }
-      }
-
-      // ここまでで「オフ人数最小」な perm は全部 candidates に入っている
-      // そこから「best_score にあまり劣っていないもの」だけ残す
-      let mut filtered: Vec<([usize; 5], PrefKey, f64)> = candidates
-        .into_iter()
-        .filter(|(_, _, s)| *s >= best_score - self.cfg.eval.score_margin)
-        .collect();
-
-      // RNG なし or 候補1個なら、普通に一番スコアが高いものを返す
-      if filtered.len() <= 1 || rng.is_none() {
-        let (perm, key, score) = filtered
-          .into_iter()
-          .max_by(|a, b| a.2.partial_cmp(&b.2).unwrap())
-          .unwrap();
-        return (perm, key, score);
-      }
-
-      let r = rng.as_deref_mut().unwrap();
-      let idx = r.random_range(0..filtered.len());
-      let (perm, key, score) = filtered.swap_remove(idx);
-
-      (perm, key, score)
+    if !is_main && !is_sub {
+      off_delta = 1;
+      off_mmr_neg_delta = -base;
     }
+    if is_sub {
+      sub_delta = 1;
+    }
+
+    let z = self.cfg.lobby.z_from(base);
+    let mut pen = self.cfg.penalty
+      .total_penalty(p, role) as f64
+      * penalty_multiplier_from_z(z, self.cfg.eval.flex_bias_alpha);
+
+    // ★ 優遇対象 + メインロールならペナルティを少し下げる
+    if is_main && priority_main.contains(&p.id) {
+      pen -= self.cfg.eval.priority_main_bonus;
+      if pen < 0.0 {
+        pen = 0.0;
+      }
+    }
+
+    let eff = base - pen;
+    let effw = eff * self.cfg.role_weight.weight(&role);
+
+    RoleEval {
+      effw,
+      off_delta,
+      sub_delta,
+      off_mmr_neg_delta,
+    }
+  }
 }
 
 
