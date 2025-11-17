@@ -10,10 +10,10 @@ pub fn print_teams(teams: &AssignedTeams, lobby: &Lobby , id: &str) {
   }
 
   println!("========= TEAM POWER =========");
-  println!("  - main: {}, sub: {}, off: {}", teams.red.main, teams.red.sub, teams.red.off);
-  println!("  - Red Team Power  : {:.2}", teams.red.power);
-  println!("  - main: {}, sub: {}, off: {}", teams.blue.main, teams.blue.sub, teams.blue.off);
-  println!("  - Blue Team Power : {:.2}", teams.blue.power);
+  // println!("  - main: {}, sub: {}, off: {}", teams.red.main, teams.red.sub, teams.red.off);
+  println!("  - Red Team Power  : {:.2}, off: {}", teams.red.power, teams.red.off);
+  // println!("  - main: {}, sub: {}, off: {}", teams.blue.main, teams.blue.sub, teams.blue.off);
+  println!("  - Blue Team Power : {:.2}, off: {}", teams.blue.power, teams.blue.off);
   println!("  - Difference      : {:.2}", (teams.red.power - teams.blue.power).abs());
   println!("");
 

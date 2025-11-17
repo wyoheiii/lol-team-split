@@ -1,3 +1,5 @@
+use rand::{Rng, RngCore};
+
 use crate::domain::types::{Player, Role, RoleMap};
 use crate::param::eval::{EvalContext, TeamScore, penalty_multiplier_from_z};
 
@@ -19,17 +21,21 @@ impl Evaluator {
   }
 
   /// 希望>サブ>オフ（オフは高MMR担当）で最良割当とスコア
-  pub fn best_assignment(&self, team: &[Player;5]) -> (RoleMap<Player>, PrefKey, f64) {
-    let (pick, key, score) = self.best_perm_pref_first(team);
-    let map = RoleMap {
-      top: team[pick[0]].clone(),
-      jg: team[pick[1]].clone(),
-      mid: team[pick[2]].clone(),
-      adc: team[pick[3]].clone(),
-      sup: team[pick[4]].clone()
-    };
-    (map, key, score)
-  }
+  pub fn best_assignment(
+    &self,
+    team: &[Player; 5],
+    rng: Option<&mut dyn RngCore>,
+    ) -> (RoleMap<Player>, PrefKey, f64) {
+      let (pick, key, score) = self.best_perm_pref_first(team, rng);
+      let map = RoleMap {
+        top: team[pick[0]].clone(),
+        jg:  team[pick[1]].clone(),
+        mid: team[pick[2]].clone(),
+        adc: team[pick[3]].clone(),
+        sup: team[pick[4]].clone(),
+      };
+      (map, key, score)
+    }
 
 
   // /// 分割評価用（割当は返さずスコアだけ）
@@ -125,69 +131,74 @@ impl Evaluator {
   //   )
   // }
 
-  fn best_perm_pref_first(&self, team: &[Player; 5]) -> ([usize; 5], PrefKey, f64) {
-    let roles_arr = Role::ALL;
-    let idxs = [0usize, 1, 2, 3, 4];
-    let mut best_pick = [0usize; 5];
-    let mut best_key = PrefKey {
-      off_count: usize::MAX,
-      off_mmr_neg_sum: f64::INFINITY,
-      sub_count: usize::MAX,
-    };
-    let mut best_score = f64::NEG_INFINITY;
+  fn best_perm_pref_first<R: Rng + ?Sized>(
+      &self,
+      team: &[Player; 5],
+      mut rng: Option<&mut R>,
+    ) -> ([usize; 5], PrefKey, f64) {
+      let roles_arr = Role::ALL;
+      let idxs = [0usize, 1, 2, 3, 4];
 
-    for perm in permutations(idxs) {
-      let mut off = 0usize;
-      let mut sub = 0usize;
-      let mut off_mmr_neg_sum = 0f64;
-      let mut effw = [0f64; 5];
+      // まず「オフ人数最小 & スコアそこそこ良い」候補を集める
+      let mut best_off = usize::MAX;
+      let mut best_score = f64::NEG_INFINITY;
 
-      for (ri, &role) in roles_arr.iter().enumerate() {
-        let p = &team[perm[ri]];
-        let r = self.score(p, role);
-        effw[ri] = r.effw;
-        off += r.off_delta;
-        sub += r.sub_delta;
-        off_mmr_neg_sum += r.off_mmr_neg_delta;
+      // (perm, key, score) の候補リスト
+      let mut candidates: Vec<([usize; 5], PrefKey, f64)> = Vec::new();
+
+      for perm in permutations(idxs) {
+        let mut off = 0usize;
+        let mut effw = [0.0f64; 5];
+
+        for (ri, &role) in roles_arr.iter().enumerate() {
+          let p = &team[perm[ri]];
+          let r = self.score(p, role);
+          effw[ri] = r.effw;
+          off += r.off_delta;
+        }
+
+        let score = match self.cfg.eval.score {
+          TeamScore::Softmax { tau } => softmax_score(&effw, tau),
+          TeamScore::TopK { k }      => topk_score(&effw, k),
+        };
+
+        // まずは「オフ人数で足切り」
+        if off < best_off {
+          best_off = off;
+          best_score = score;
+          candidates.clear();
+          candidates.push((perm, PrefKey { off_count: off }, score));
+        } else if off == best_off {
+          // 同じオフ人数なら、候補に追加しながら best_score を更新
+          if score > best_score {
+            best_score = score;
+          }
+          candidates.push((perm, PrefKey { off_count: off }, score));
+        }
       }
 
-      let score = match self.cfg.eval.score {
-        TeamScore::Softmax { tau } => softmax_score(&effw, tau),
-        TeamScore::TopK { k } => topk_score(&effw, k),
-      };
+      // ここまでで「オフ人数最小」な perm は全部 candidates に入っている
+      // そこから「best_score にあまり劣っていないもの」だけ残す
+      let mut filtered: Vec<([usize; 5], PrefKey, f64)> = candidates
+        .into_iter()
+        .filter(|(_, _, s)| *s >= best_score - self.cfg.eval.score_margin)
+        .collect();
 
-      let key = PrefKey {
-          off_count: off,
-          off_mmr_neg_sum,
-          sub_count: sub,
-      };
-
-      // let better =
-      //   key.off_count < best_key.off_count ||
-      //   (key.off_count == best_key.off_count
-      //     && key.off_mmr_neg_sum.total_cmp(&best_key.off_mmr_neg_sum).is_lt()) ||
-      //   (key.off_count == best_key.off_count
-      //     && key.off_mmr_neg_sum.total_cmp(&best_key.off_mmr_neg_sum).is_eq()
-      //     && key.sub_count < best_key.sub_count) ||
-      //   (key.off_count == best_key.off_count
-      //     && key.off_mmr_neg_sum.total_cmp(&best_key.off_mmr_neg_sum).is_eq()
-      //     && key.sub_count == best_key.sub_count
-      //     && score > best_score);
-
-       let better =
-        // 1. オフ人数少ない
-        key.off_count < best_key.off_count ||
-        // 2. オフ人数同じならスコア高い
-        (key.off_count == best_key.off_count && score > best_score);
-
-      if better {
-        best_pick = perm;
-        best_key = key;
-        best_score = score;
+      // RNG なし or 候補1個なら、普通に一番スコアが高いものを返す
+      if filtered.len() <= 1 || rng.is_none() {
+        let (perm, key, score) = filtered
+          .into_iter()
+          .max_by(|a, b| a.2.partial_cmp(&b.2).unwrap())
+          .unwrap();
+        return (perm, key, score);
       }
+
+      let r = rng.as_deref_mut().unwrap();
+      let idx = r.random_range(0..filtered.len());
+      let (perm, key, score) = filtered.swap_remove(idx);
+
+      (perm, key, score)
     }
-    (best_pick, best_key, best_score)
-  }
 }
 
 
@@ -195,8 +206,6 @@ impl Evaluator {
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct PrefKey {
   pub off_count: usize,
-  pub off_mmr_neg_sum: f64,
-  pub sub_count: usize
 }
 
 fn softmax_score(e:&[f64;5], tau:f64)->f64 {

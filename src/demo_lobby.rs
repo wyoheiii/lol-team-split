@@ -24,7 +24,8 @@ fn lobby(id: &'static str, v: Vec<Player>) -> (&'static str, Lobby) {
 
 // ===== 10 Lobbies =====
 //pub fn sample_lobbies() -> [(&'static str, Lobby); 10] {
-pub fn sample_lobbies() -> [(&'static str, Lobby); 3] {
+// pub fn sample_lobbies() -> [(&'static str, Lobby); 3] {
+pub fn sample_lobbies() -> [(&'static str, Lobby); 1] {
     use crate::domain::Division::*; use crate::domain::Role::*; use crate::domain::TierBelowMaster::*;
     use crate::domain::MasterLeague::*;
 
@@ -42,33 +43,33 @@ pub fn sample_lobbies() -> [(&'static str, Lobby); 3] {
     p("L1_BrzSup",  br(Bronze, I), Sup, &[Adc]),
     ]);
 
-    // L2: Mid 過多（Midメイン4名）＋上位帯多め
-    let l2 = lobby("L2_MID_HEAVY", vec![
-    p("L2_ChalMid", mr(Challenger, 650), Mid, &[Jg]),
-    p("L2_GM_Mid",  mr(Grandmaster, 280), Mid, &[Top]),
-    p("L2_MasMid",  mr(Master, 120), Mid, &[Jg]),
-    p("L2_DiaMid",  br(Diamond, I), Mid, &[Top]),
-    p("L2_DiaJg",   br(Diamond, II), Jg, &[Mid]),
-    p("L2_EmeTop",  br(Emerald, I), Top, &[Jg]),
-    p("L2_PlatAdc", br(Platinum, II), Adc, &[Sup]),
-    p("L2_GoldSup", br(Gold, I), Sup, &[Adc]),
-    p("L2_SlvAdc",  br(Silver, I), Adc, &[Sup]),
-    p("L2_BrzSup",  br(Bronze, I), Sup, &[Adc]),
-    ]);
+    // // L2: Mid 過多（Midメイン4名）＋上位帯多め
+    // let l2 = lobby("L2_MID_HEAVY", vec![
+    // p("L2_ChalMid", mr(Challenger, 650), Mid, &[Jg]),
+    // p("L2_GM_Mid",  mr(Grandmaster, 280), Mid, &[Top]),
+    // p("L2_MasMid",  mr(Master, 120), Mid, &[Jg]),
+    // p("L2_DiaMid",  br(Diamond, I), Mid, &[Top]),
+    // p("L2_DiaJg",   br(Diamond, II), Jg, &[Mid]),
+    // p("L2_EmeTop",  br(Emerald, I), Top, &[Jg]),
+    // p("L2_PlatAdc", br(Platinum, II), Adc, &[Sup]),
+    // p("L2_GoldSup", br(Gold, I), Sup, &[Adc]),
+    // p("L2_SlvAdc",  br(Silver, I), Adc, &[Sup]),
+    // p("L2_BrzSup",  br(Bronze, I), Sup, &[Adc]),
+    // ]);
 
-    // L3: Jg 不足（Jgメイン1名のみ）＋低～中帯中心
-    let l3 = lobby("L3_JG_SCARCE", vec![
-    p("L3_DiaTop",  br(Diamond, III), Top, &[Mid]),
-    p("L3_PlatTop", br(Platinum, I), Top, &[Jg]),
-    p("L3_PlatMid", br(Platinum, II), Mid, &[Top]),
-    p("L3_GoldMid", br(Gold, I), Mid, &[Adc]),
-    p("L3_GoldAdc", br(Gold, II), Adc, &[Sup]),
-    p("L3_GoldSup", br(Gold, III), Sup, &[Adc]),
-    p("L3_SlvAdc",  br(Silver, I), Adc, &[Sup]),
-    p("L3_SlvSup",  br(Silver, II), Sup, &[Adc]),
-    p("L3_BrzTop",  br(Bronze, I), Top, &[Sup]),
-    p("L3_EmeJg",   br(Emerald, IV), Jg, &[Top]), // ここだけ Jg メイン
-    ]);
+    // // L3: Jg 不足（Jgメイン1名のみ）＋低～中帯中心
+    // let l3 = lobby("L3_JG_SCARCE", vec![
+    // p("L3_DiaTop",  br(Diamond, III), Top, &[Mid]),
+    // p("L3_PlatTop", br(Platinum, I), Top, &[Jg]),
+    // p("L3_PlatMid", br(Platinum, II), Mid, &[Top]),
+    // p("L3_GoldMid", br(Gold, I), Mid, &[Adc]),
+    // p("L3_GoldAdc", br(Gold, II), Adc, &[Sup]),
+    // p("L3_GoldSup", br(Gold, III), Sup, &[Adc]),
+    // p("L3_SlvAdc",  br(Silver, I), Adc, &[Sup]),
+    // p("L3_SlvSup",  br(Silver, II), Sup, &[Adc]),
+    // p("L3_BrzTop",  br(Bronze, I), Top, &[Sup]),
+    // p("L3_EmeJg",   br(Emerald, IV), Jg, &[Top]), // ここだけ Jg メイン
+    // ]);
 
     // // L4: Sup 過多（Supメイン4名）＋上下ブレ幅大
     // let l4 = lobby("L4_SUP_HEAVY", vec![
@@ -169,5 +170,6 @@ pub fn sample_lobbies() -> [(&'static str, Lobby); 3] {
     // ]);
 
     //[l1,l2,l3,l4,l5,l6,l7,l8,l9,l10]
-    [l1,l2,l3]
+    //[l1,l2,l3]
+    [l1]
 }

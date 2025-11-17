@@ -22,7 +22,7 @@ fn main() {
 
     let eval = EvalContext::new(&lobby);
     let evaluator = Evaluator::new(eval);
-    let optimizer = JointEnumeratingOptimizer::new(evaluator, Some(42));
+    let optimizer = JointEnumeratingOptimizer::new(evaluator, None);
     let solver   = DefaultSolver::new(optimizer);
     print_teams(&solver.solve(&lobby) , &lobby, &id);
   }

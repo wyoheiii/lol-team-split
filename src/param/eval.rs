@@ -14,6 +14,8 @@ pub struct Eval {
   pub score: TeamScore,
   pub power_margin: f64, // チーム総合力差がこの範囲なら「ほぼ同じ」
   pub lane_margin: f64, // レーン差もこの範囲なら「ほぼ同じ」
+  pub score_margin: f64, // スコア許容マージン
+  pub priority_main_bonus: f64,  // メイン優遇ボーナス(MMR換算)
 }
 
 impl Default for Eval {
@@ -25,7 +27,8 @@ impl Default for Eval {
       score: TeamScore::Softmax { tau: 220.0 },
       power_margin: 10.0,
       lane_margin: 40.0,
-
+      score_margin: 40.0,
+      priority_main_bonus: 40.0,
     }
   }
 }

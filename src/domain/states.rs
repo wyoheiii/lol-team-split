@@ -19,8 +19,8 @@ impl Lobby {
 #[derive(Clone, Debug)]
 pub struct Team {
   pub players: RoleMap<Player>,
-  pub main: usize,
-  pub sub: usize,
+  // pub main: usize,
+  // pub sub: usize,
   pub off: usize,
   pub power: f64,
 }
