@@ -71,42 +71,42 @@ impl Evaluator {
       }
   }
 
-  pub fn score_assigned(&self, assigned: &RoleMap<Player>) -> (PrefKey, f64) {
-    let pairs: [(Role, &Player); 5] = [
-      (Role::Top, &assigned.top),
-      (Role::Jg,  &assigned.jg),
-      (Role::Mid, &assigned.mid),
-      (Role::Adc, &assigned.adc),
-      (Role::Sup, &assigned.sup),
-    ];
+  // pub fn score_assigned(&self, assigned: &RoleMap<Player>) -> (PrefKey, f64) {
+  //   let pairs: [(Role, &Player); 5] = [
+  //     (Role::Top, &assigned.top),
+  //     (Role::Jg,  &assigned.jg),
+  //     (Role::Mid, &assigned.mid),
+  //     (Role::Adc, &assigned.adc),
+  //     (Role::Sup, &assigned.sup),
+  //   ];
 
-    let mut off = 0usize;
-    let mut sub = 0usize;
-    let mut off_mmr_neg_sum = 0f64;
-    let mut effw = [0f64; 5];
+  //   let mut off = 0usize;
+  //   let mut sub = 0usize;
+  //   let mut off_mmr_neg_sum = 0f64;
+  //   let mut effw = [0f64; 5];
 
-    for (i, (role, p)) in pairs.iter().enumerate() {
-      let r = self.score(p, *role);
-      effw[i] = r.effw;
-      off += r.off_delta;
-      sub += r.sub_delta;
-      off_mmr_neg_sum += r.off_mmr_neg_delta;
-    }
+  //   for (i, (role, p)) in pairs.iter().enumerate() {
+  //     let r = self.score(p, *role);
+  //     effw[i] = r.effw;
+  //     off += r.off_delta;
+  //     sub += r.sub_delta;
+  //     off_mmr_neg_sum += r.off_mmr_neg_delta;
+  //   }
 
-    let score = match self.cfg.eval.score {
-      // TeamScore::Softmax { tau } => softmax_score(&effw, tau),
-      TeamScore::TopK { k } => topk_score(&effw, k),
-    };
+  //   let score = match self.cfg.eval.score {
+  //     // TeamScore::Softmax { tau } => softmax_score(&effw, tau),
+  //     TeamScore::TopK { k } => topk_score(&effw, k),
+  //   };
 
-    (
-      PrefKey {
-        off_count: off,
-        off_mmr_neg_sum,
-        sub_count: sub,
-      },
-      score,
-    )
-  }
+  //   (
+  //     PrefKey {
+  //       off_count: off,
+  //       off_mmr_neg_sum,
+  //       sub_count: sub,
+  //     },
+  //     score,
+  //   )
+  // }
 
   fn best_perm_pref_first(&self, team: &[Player; 5]) -> ([usize; 5], PrefKey, f64) {
     let roles_arr = Role::ALL;
