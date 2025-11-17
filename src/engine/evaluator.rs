@@ -38,6 +38,23 @@ impl Evaluator {
   //   (key, score)
   // }
 
+  pub fn role_effw(&self, assigned: &RoleMap<Player>) -> [f64; 5] {
+    let pairs: [(Role, &Player); 5] = [
+      (Role::Top, &assigned.top),
+      (Role::Jg,  &assigned.jg),
+      (Role::Mid, &assigned.mid),
+      (Role::Adc, &assigned.adc),
+      (Role::Sup, &assigned.sup),
+    ];
+
+    let mut effw = [0.0; 5];
+    for (i, (role, p)) in pairs.iter().enumerate() {
+      let r = self.score(p, *role);
+      effw[i] = r.effw;
+    }
+    effw
+  }
+
   fn score(&self, p: &Player, role: Role) -> RoleEval {
       let base = self.cfg.eval.mmr.calculate(&p.rank);
       let is_main = role == p.main_role;
@@ -135,7 +152,7 @@ impl Evaluator {
       }
 
       let score = match self.cfg.eval.score {
-        // TeamScore::Softmax { tau } => softmax_score(&effw, tau),
+        TeamScore::Softmax { tau } => softmax_score(&effw, tau),
         TeamScore::TopK { k } => topk_score(&effw, k),
       };
 
@@ -145,17 +162,23 @@ impl Evaluator {
           sub_count: sub,
       };
 
-      let better =
+      // let better =
+      //   key.off_count < best_key.off_count ||
+      //   (key.off_count == best_key.off_count
+      //     && key.off_mmr_neg_sum.total_cmp(&best_key.off_mmr_neg_sum).is_lt()) ||
+      //   (key.off_count == best_key.off_count
+      //     && key.off_mmr_neg_sum.total_cmp(&best_key.off_mmr_neg_sum).is_eq()
+      //     && key.sub_count < best_key.sub_count) ||
+      //   (key.off_count == best_key.off_count
+      //     && key.off_mmr_neg_sum.total_cmp(&best_key.off_mmr_neg_sum).is_eq()
+      //     && key.sub_count == best_key.sub_count
+      //     && score > best_score);
+
+       let better =
+        // 1. オフ人数少ない
         key.off_count < best_key.off_count ||
-        (key.off_count == best_key.off_count
-          && key.off_mmr_neg_sum.total_cmp(&best_key.off_mmr_neg_sum).is_lt()) ||
-        (key.off_count == best_key.off_count
-          && key.off_mmr_neg_sum.total_cmp(&best_key.off_mmr_neg_sum).is_eq()
-          && key.sub_count < best_key.sub_count) ||
-        (key.off_count == best_key.off_count
-          && key.off_mmr_neg_sum.total_cmp(&best_key.off_mmr_neg_sum).is_eq()
-          && key.sub_count == best_key.sub_count
-          && score > best_score);
+        // 2. オフ人数同じならスコア高い
+        (key.off_count == best_key.off_count && score > best_score);
 
       if better {
         best_pick = perm;
@@ -176,13 +199,13 @@ pub struct PrefKey {
   pub sub_count: usize
 }
 
-// fn softmax_score(e:&[f64;5], tau:f64)->f64 {
-//   let t = tau.max(1.0);
-//   let m = e.iter().cloned().fold(f64::NEG_INFINITY,f64::max);
-//   let exps:Vec<f64> = e.iter().map(|x|((x - m) / t).exp()).collect();
-//   let den: f64 = exps.iter().sum();
-//   e.iter().zip(&exps).map(|(x,w)| x * w).sum::<f64>() / den
-// }
+fn softmax_score(e:&[f64;5], tau:f64)->f64 {
+  let t = tau.max(1.0);
+  let m = e.iter().cloned().fold(f64::NEG_INFINITY,f64::max);
+  let exps:Vec<f64> = e.iter().map(|x|((x - m) / t).exp()).collect();
+  let den: f64 = exps.iter().sum();
+  e.iter().zip(&exps).map(|(x,w)| x * w).sum::<f64>() / den
+}
 
 fn topk_score(e:&[f64;5], k:usize)->f64 {
   let mut v = e.to_vec();
