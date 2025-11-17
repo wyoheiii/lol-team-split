@@ -9,7 +9,7 @@ pub enum Role {
 }
 
 impl Role {
-  pub const All: [Role; 5] = [Role::Top, Role::Jg, Role::Mid, Role::Adc, Role::Sup];
+  pub const ALL: [Role; 5] = [Role::Top, Role::Jg, Role::Mid, Role::Adc, Role::Sup];
 
 }
 

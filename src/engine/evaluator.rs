@@ -34,23 +34,7 @@ impl Evaluator {
     let (_pick, key, score) = best_perm_pref_first(team, self, st);
     (key, score)
   }
-}
-
-
-#[derive(Copy, Clone, Debug, PartialEq)]
-pub struct PrefKey {
-  pub off_count: usize,
-  pub off_mmr_neg_sum: f64,
-  pub sub_count: usize
-}
-
-
-fn best_perm_pref_first(team: &[Player;5], ev: &Evaluator, st: &EvalState) -> ([usize;5], PrefKey, f64) {
-  let roles_arr = Role::All;
-  let idxs = [0usize,1,2,3,4];
-  let mut best_pick = [0usize;5];
-  let mut best_key = PrefKey { off_count: usize::MAX, off_mmr_neg_sum: f64::INFINITY, sub_count: usize::MAX };
-  let mut best_score = f64::NEG_INFINITY;
+    let roles_arr = Role::ALL;
 
 
   for perm in permutations(idxs) {
