@@ -45,7 +45,7 @@ impl Default for MMR {
 
   MMR {
     master_base_mmr: 900,
-    ip_scale: 0.25, // master↑のMMR増加量に対する倍率 要調整
+    ip_scale: 1.0, // master↑のMMR増加量に対する倍率 要調整
     tier_table: table,
   }
   }
