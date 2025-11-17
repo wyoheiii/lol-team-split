@@ -1,3 +1,5 @@
+use crate::engine::evaluator::Evaluator;
+use crate::optimizer::joint::JointEnumeratingOptimizer;
 use crate::param::eval::EvalContext;
 use crate::splitter::role_snake::RoleSnakeSplitter;
 use crate::splitter::global_enum;
@@ -20,7 +22,7 @@ mod assigner;
 mod print;
 mod demo_lobby;
 mod engine;
-
+mod optimizer;
 
 
 fn main() {
@@ -28,15 +30,13 @@ fn main() {
   for (id, lobby) in sample_lobbies() {
     println!("=== Solving Lobby: {} ===", id);
     for p in lobby.players() {
-      println!("  - {:<12} (Role: {} ,Rank: {})", p.name, p.main_role, p.rank);
+      println!("  - {:<12} (Main Role: {} , Sub Role: {:?} , Rank: {})", p.name, p.main_role, p.sub_role, p.rank);
     }
-    // let splitter = RandomSplitter::new(42);
-    // let assigner = RandomRoleAssigner::new(42);
+
     let eval = EvalContext::new(&lobby);
-    //let splitter = RoleSnakeSplitter::new(eval.eval.mmr.clone());
-    let splitter = global_enum::GlobalEnumeratingSplitter::new(42, eval.clone());
-    let assigner = BruteForceAssigner::new(eval);
-    let solver   = DefaultSolver::new(splitter, assigner);
+    let evaluator = Evaluator::new(eval);
+    let optimizer = JointEnumeratingOptimizer::new(evaluator, Some(42));
+    let solver   = DefaultSolver::new(optimizer);
     print_teams(&solver.solve(&lobby));
   }
 

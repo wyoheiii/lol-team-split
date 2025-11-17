@@ -13,6 +13,9 @@ pub struct EvalState { pub lobby: LobbyStats }
 
 
 impl Evaluator {
+  pub fn new(cfg: EvalContext) -> Self {
+    Self { cfg }
+  }
   pub fn state_for(&self, lobby: &Lobby) -> EvalState {
     EvalState { lobby: LobbyStats::from_lobby(lobby, &self.cfg.eval.mmr) }
   }
