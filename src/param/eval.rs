@@ -1,12 +1,18 @@
 use crate::{domain::states::Lobby, param::{mmr::{self, MMR}, penalty_matrix::PenaltyMatrix, role_weights::RoleWeights}};
 
 
+#[derive(Debug, Clone, Copy)]
+pub enum TeamScore {
+  Softmax { tau: f64 },
+  TopK { k: usize },
+}
 
 #[derive(Debug, Clone)]
 pub struct Eval {
   pub softmax_tau: f64,
   pub mmr : mmr::MMR,
-  pub flex_bias_alpha: f64,
+  pub flex_bias_alpha: f64, // レートが低いほど希望ロール優先
+  pub score: TeamScore,
 }
 
 impl Default for Eval {
@@ -15,6 +21,7 @@ impl Default for Eval {
       softmax_tau: 150.0,
       mmr: mmr::MMR::default(),
       flex_bias_alpha: 0.15,
+      score: TeamScore::TopK { k: 2 },
     }
   }
 }

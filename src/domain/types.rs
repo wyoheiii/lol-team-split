@@ -1,5 +1,5 @@
 use std::fmt;
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Copy)]
 pub enum Role {
   Top,
   Jg,

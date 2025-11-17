@@ -1,5 +1,6 @@
 use crate::param::eval::EvalContext;
 use crate::splitter::role_snake::RoleSnakeSplitter;
+use crate::splitter::global_enum;
 use crate::{domain::Rank, domain::states::Lobby};
 use crate::pipeline::TeamSolver;
 use crate::splitter::random::RandomSplitter;
@@ -31,7 +32,8 @@ fn main() {
     // let splitter = RandomSplitter::new(42);
     // let assigner = RandomRoleAssigner::new(42);
     let eval = EvalContext::new(&lobby);
-    let splitter = RoleSnakeSplitter::new(eval.eval.mmr.clone());
+    //let splitter = RoleSnakeSplitter::new(eval.eval.mmr.clone());
+    let splitter = global_enum::GlobalEnumeratingSplitter::new(42, eval.clone());
     let assigner = BruteForceAssigner::new(eval);
     let solver   = DefaultSolver::new(splitter, assigner);
     print_teams(&solver.solve(&lobby));
