@@ -87,6 +87,7 @@ impl fmt::Display for Rank {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Player {
+  pub id: u32,
   pub name: String,
   pub rank: Rank,
   pub main_role: Role,
